@@ -1,7 +1,9 @@
+require 'thread_safe'
+
 module FakeRedis
   # Represents a normal hash with some additional expiration information
   # associated with each key
-  class ExpiringHash < Hash
+  class ExpiringHash < ThreadSafe::Hash
     attr_reader :expires
 
     def initialize(*)

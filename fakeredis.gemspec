@@ -19,5 +19,6 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_runtime_dependency(%q<redis>, ["~> 3.0"])
+  s.add_runtime_dependency(%q<thread_safe>)
   s.add_development_dependency(%q<rspec>, ["~> 3.0"])
 end

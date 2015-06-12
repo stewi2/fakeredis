@@ -5,11 +5,11 @@ module FakeRedis
     def self.included(klass)
       klass.class_eval do
         def self.queued_commands
-          @queued_commands ||= Hash.new {|h,k| h[k] = [] }
+          @queued_commands ||= ThreadSafe::Hash.new {|h,k| h[k] = [] }
         end
 
         def self.in_multi
-          @in_multi ||= Hash.new{|h,k| h[k] = false}
+          @in_multi ||= ThreadSafe::Hash.new{|h,k| h[k] = false}
         end
 
         def queued_commands

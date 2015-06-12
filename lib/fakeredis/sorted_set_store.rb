@@ -14,7 +14,7 @@ module FakeRedis
         case data[src]
         when ::Set
           # Every value has a score of 1
-          Hash[data[src].map {|k,v| [k, 1]}]
+          ThreadSafe::Hash[data[src].map {|k,v| [k, 1]}]
         when Hash
           data[src]
         else
@@ -31,7 +31,7 @@ module FakeRedis
         # Otherwise, multiply the values in each hash by that hash's weighting
         @computed_values ||= hashes.each_with_index.map do |hash, index|
           weight = weights[index]
-          Hash[hash.map {|k, v| [k, (v * weight)]}]
+          ThreadSafe::Hash[hash.map {|k, v| [k, (v * weight)]}]
         end
       end
       @computed_values

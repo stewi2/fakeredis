@@ -8,6 +8,7 @@ require "fakeredis/sorted_set_argument_handler"
 require "fakeredis/sorted_set_store"
 require "fakeredis/transaction_commands"
 require "fakeredis/zset"
+require 'thread_safe'
 
 class Redis
   module Connection
@@ -20,6 +21,8 @@ class Redis
 
       attr_accessor :options
 
+      @databases = ThreadSafe::Hash.new {|h,k| h[k] = [] }
+
       # Tracks all databases for all instances across the current process.
       # We have to be able to handle two clients with the same host/port accessing
       # different databases at once without overwriting each other. So we store our
@@ -27,12 +30,12 @@ class Redis
       # Client instances access it with a key made up of their host/port, and then select
       # which DB out of the array of them they want. Allows the access we need.
       def self.databases
-        @databases ||= Hash.new {|h,k| h[k] = [] }
+        @databases
       end
 
       # Used for resetting everything in specs
       def self.reset_all_databases
-        @databases = nil
+        @databases.clear
       end
 
       def self.connect(options = {})
@@ -100,7 +103,7 @@ class Redis
       end
 
       def flushall
-        self.class.databases[database_instance_key] = []
+        self.class.databases[database_instance_key] = ThreadSafe::Array.new
         "OK"
       end
 
@@ -369,7 +372,7 @@ class Redis
 
       def rpush(key, value)
         data_type_check(key, Array)
-        data[key] ||= []
+        data[key] ||= ThreadSafe::Array.new
         [value].flatten.each do |val|
           data[key].push(val.to_s)
         end
@@ -725,7 +728,7 @@ class Redis
 
         data[key] = value.to_s
 
-        options = Hash[array_options.each_slice(2).to_a]
+        options = ThreadSafe::Hash[array_options.each_slice(2).to_a]
         ttl_in_seconds = options["EX"] if options["EX"]
         ttl_in_seconds = options["PX"] / 1000.0 if options["PX"]
 
